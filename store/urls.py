@@ -13,5 +13,8 @@ urlpatterns = [
     path('product/<int:pk>', views.product, name='product'),
     path('category/<str:foo>', views.category, name='category'),
     path('category_summary/', views.category_summary, name='category_summary'),
+<<<<<<< HEAD
     path('search/', views.search, name='search'),
+=======
+>>>>>>> a16a1ec8b722ec404eeb786f560df4dcfe9a66a2
 ]

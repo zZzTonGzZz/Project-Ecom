@@ -28,6 +28,7 @@
 
             <!-- Product price-->
             <strike>${{ product.price }}</strike>
+<<<<<<< HEAD
             &nbsp;
             ${{ product.sale_price }}
             
@@ -42,6 +43,16 @@
             <br/><br/>
             <div class="row justify-content-center">
               <div class="col-md-2">Quantity:</div>
+=======
+            &nbsp; ${{ product.sale_price }} 
+            {% else %}
+              ${{ product.price }}
+
+            {%endif %}
+            <br/><br/>
+            <div class="row justify-content-center">
+              <div class="col-md-2">Quantity</div>
+>>>>>>> a16a1ec8b722ec404eeb786f560df4dcfe9a66a2
               <div class="col-md-2">
             <select class="form-select form-select-sm" id="qty-cart">
               <option value="1">1</option>
@@ -53,25 +64,55 @@
               </div>
             </div>
             <br/><br/>
+<<<<<<< HEAD
           <a href="{% url 'home' %}" class="btn btn-secondary">Home</a>
           <button type="button" value="{{ product.id }}" class="btn btn-secondary" id="add-cart">Add to Cart</button>
         
         </center>
+=======
+            <div class="row justify-content-center">
+              <div class="col-md-2">Size</div>
+              <div class="col-md-2">
+            <select class="form-select form-select-sm" id="qty-cart">
+              <option value="1">S</option>
+              <option value="2">M</option>
+              <option value="3">L</option>
+              <option value="4">XL</option>
+              <option value="5">XXL</option>
+            </select>
+              </div>
+            </div>
+            <br /><br />
+            <a href="{% url 'home' %}" class="btn btn-secondary">Home</a>
+            <button type="button" value="{{ product.id }}" class="btn btn-secondary" id="add-cart">Add to Cart</button>
+          </center>
+>>>>>>> a16a1ec8b722ec404eeb786f560df4dcfe9a66a2
         </div>
       </div>
     </div>
   </div>
 </div>
+<<<<<<< HEAD
 
 
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 
 <script>
 // Check if button pressed
+=======
+  <br /><br />
+  <br /><br />
+  <br /><br />
+  <br /><br />
+  <br /><br />
+<script>
+// Check if button passed
+>>>>>>> a16a1ec8b722ec404eeb786f560df4dcfe9a66a2
 $(document).on('click', '#add-cart', function(e){
   e.preventDefault();
   $.ajax({
     type: 'POST',
+<<<<<<< HEAD
     url: '{% url "cart_add" %}',
     data: {
   product_id: $('#add-cart').val(),
@@ -95,11 +136,33 @@ $(document).on('click', '#add-cart', function(e){
 
 
 
+=======
+    url: '{% url 'cart_add' %}',
+    data: {
+  product_id: $('#add-cart').val(),
+  product_qty: $('#qty-cart option:selected').text()
+  csrfmiddlewaretoken: '{{ crsf_token }}',
+  action: 'post'
+    },
+    success: function(json){
+      //console.log(json)
+      document.getElementById("cart_quantity").
+        textContent = json.qty
+    },
+    error: function(xhr, errmsg, err){
+
+    }
+  });
+>>>>>>> a16a1ec8b722ec404eeb786f560df4dcfe9a66a2
 })
 
 
 
 </script>
+<<<<<<< HEAD
 
 
 {% endblock %}
+=======
+{% endblock %}
+>>>>>>> a16a1ec8b722ec404eeb786f560df4dcfe9a66a2

@@ -1,5 +1,9 @@
 from django.shortcuts import render, redirect
+<<<<<<< HEAD
 from .models import Product, Category, Profile
+=======
+from .models import Product, Category
+>>>>>>> a16a1ec8b722ec404eeb786f560df4dcfe9a66a2
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.models import User
@@ -120,6 +124,19 @@ def category(request, foo):
     messages.success(request, ("That Category Doesn`t Exist..."))
     return redirect('home')
 
+def category_summary(request):
+  categories = Category.objects.all()
+  return render(request, 'category_summary.html', {"categories":categories})
+
+def category(request, foo):
+  foo = foo.request('-', ' ')
+  try:
+    category = Category.objects.get(name=foo)
+    product = Product.objects.filter(category=category)
+    return render(request, 'category.html', {'products':product, 'category':category})
+  except:
+    messages.success(request, ("That Category Doesn't Exist..."))
+    return redirect('home')
 
 def product(request,pk):
   product = Product.objects.get(id=pk)
