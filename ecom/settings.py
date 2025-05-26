@@ -17,8 +17,8 @@ SECRET_KEY = 'django-insecure-m6^7lmt1iw(qe+_(=a7&8lzn4s=k)p9)xlx-y=f7n%#=4qq+sk
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['postgres-production-c2ef.up.railway.app', 'https://postgres-production-c2ef.up.railway.app']
-CSRF_TRUSTED_ORIGINS = ['postgres-production-c2ef.up.railway.app', 'https://postgres-production-c2ef.up.railway.app']
+ALLOWED_HOSTS = []
+CSRF_TRUSTED_ORIGINS = []
 
 # Application definition
 
