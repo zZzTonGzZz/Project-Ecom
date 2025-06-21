@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<!-- Header-->
+<header class="bg-dark py-5">
+    <div class="container px-4 px-lg-5 my-5">
+        <div class="text-center text-white">
+            <h1 class="display-4 fw-bolder">Add New Product</h1>
+            <p class="lead fw-normal text-white-50 mb-0">
+                Create a new product for your store inventory...
+            </p>
+        </div>
+    </div>
+</header>
+<div class="container">
+    <div class="row">
+
+        <div class="col-md-6 offset-md-3">
+
+            <br/><br/>
+            <strong>Product Information</strong>
+            <br/><br/>
+            <form method="POST" action="{% url 'add_item' %}" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <!-- Product Name -->
+    <div class="mb-3 position-relative">
+        <input type="text" 
+                class="form-control {% if form.name.errors %}is-invalid{% endif %}" 
+                id="{{ form.name.id_for_label }}" 
+                name="{{ form.name.name }}" 
+                value="{{ form.name.value|default:'' }}"
+                placeholder="Product Name"
+                maxlength="100"
+                required>
+        {% if form.name.errors %}
+            <div class="invalid-feedback">{{ form.name.errors.0 }}</div>
+        {% endif %}
+    </div>
+
+
+
+    <!-- Product Description -->
+    <div class="mb-3 position-relative">
+        <input type="text"
+                class="form-control {% if form.description.errors %}is-invalid{% endif %}" 
+                id="{{ form.description.id_for_label }}" 
+                name="{{ form.description.name }}" 
+                value="{{ form.description.value|default:'' }}"
+                placeholder="Description"
+                maxlength="255"
+                required>
+        {% if form.name.errors %}
+            <div class="invalid-feedback">{{ form.name.errors.0 }}</div>
+        {% endif %}
+    </div>
+
+
+
+    <!-- Product Price -->
+    <div class="mb-3 position-relative">
+        <div class="input-group">
+            <input type="number" 
+                    class="form-control {% if form.price.errors %}is-invalid{% endif %}" 
+                    id="{{ form.price.id_for_label }}" 
+                    name="{{ form.price.name }}" 
+                    value="{{ form.price.value|default:'' }}"
+                    step="0.01" 
+                    min="0.01"
+                    placeholder="Price"
+                    required>
+            {% if form.price.errors %}
+                <div class="invalid-feedback">{{ form.price.errors.0 }}</div>
+            {% endif %}
+        </div>
+    </div>
+
+
+
+    <!-- Product Quantity -->
+    <div class="mb-3 position-relative">
+        <input type="number" 
+                class="form-control {% if form.quantity.errors %}is-invalid{% endif %}" 
+                id="{{ form.quantity.id_for_label }}" 
+                name="{{ form.quantity.name }}" 
+                value="{{ form.quantity.value|default:'' }}"
+                min="0"
+                placeholder="Quantity"
+                required>
+        {% if form.quantity.errors %}
+            <div class="invalid-feedback">{{ form.quantity.errors.0 }}</div>
+        {% endif %}
+    </div>
+
+
+
+    <!-- Product Category -->
+    <div class="mb-3 position-relative">
+        <select class="form-control {% if form.category.errors %}is-invalid{% endif %}" 
+                id="{{ form.category.id_for_label }}" 
+                name="{{ form.category.name }}">
+            <option value="">Select Category</option>
+            {% for choice in form.category.field.queryset %}
+                <option value="{{ choice.pk }}" {% if form.category.value == choice.pk|stringformat:"s" %}selected{% endif %}>
+                    {{ choice.name }}
+                </option>
+            {% endfor %}
+        </select>
+        {% if form.category.errors %}
+            <div class="invalid-feedback">{{ form.category.errors.0 }}</div>
+        {% endif %}
+    </div>
+
+
+
+    <!-- Product Image -->
+    <div class="mb-3 position-relative">
+        <img id="imagePreview" src="#" alt="Image Preview" class="mb-2 d-none" style="max-height: 150px;">
+        <input type="file" 
+            class="form-control {% if form.image.errors %}is-invalid{% endif %}" 
+            id="{{ form.image.id_for_label }}" 
+            name="{{ form.image.name }}"
+            accept="image/*"
+            onchange="previewImage(this)">
+        <div class="form-text">
+            Product Image: (JPG, PNG, WebP, Avif) Max size: 5MB
+        </div>
+    
+        {% if form.image.errors %}
+            <div class="invalid-feedback">{{ form.image.errors.0 }}</div>
+        {% endif %}
+    </div>
+
+    <!-- Preview Script -->
+    <script>
+        function previewImage(input) {
+            const preview = document.getElementById('imagePreview');
+            const file = input.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                preview.src = e.target.result;
+                preview.classList.remove('d-none');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                preview.src = "#";
+                preview.classList.add('d-none');
+            }
+        }
+    </script>
+
+
+    
+    <!-- Active Status -->
+    <div class="mb-4">
+        <div class="form-check">
+            <input type="checkbox" 
+                    class="form-check-input {% if form.is_active.errors %}is-invalid{% endif %}" 
+                    id="{{ form.is_active.id_for_label }}" 
+                    name="{{ form.is_active.name }}"
+                    {% if form.is_active.value %}checked{% endif %}>
+            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                Product is active and available for sale
+            </label>
+            {% if form.is_active.errors %}
+                <div class="invalid-feedback">{{ form.is_active.errors.0 }}</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <br/><br/>
+    <button type="submit" class="btn btn-secondary">
+        Save Product
+    </button>
+</form>
+
+<br/><br/>
+
+    
+<br /><br />
+<br /><br />
+<br /><br />
+<br /><br />
+<br /><br />
+<br /><br />
+<br /><br />
+
+
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

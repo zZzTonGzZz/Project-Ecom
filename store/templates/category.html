@@ -1,19 +1,20 @@
 {% extends 'base.html' %}
 
-
 {% block content %}
+
 
         <!-- Header-->
         <header class="bg-dark py-5">
             <div class="container px-4 px-lg-5 my-5">
                 <div class="text-center text-white">
                     <h1 class="display-4 fw-bolder">
-                    {{ category }}
-                </h1>
-                    <p class="lead fw-normal text-white-50 mb-0">Category Page</p>
+                      {{ category }}
+                    </h1>
                 </div>
             </div>
         </header>
+
+        
         <!-- Section-->
         <section class="py-5">
 
@@ -53,9 +54,9 @@
                             </div>
                             <!-- Product actions-->
                             <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
-    <div class="text-center">
-        <a class="btn btn-outline-dark mt-auto" href="{% url 'product' product.id  %}">View Product</a>
-    </div>
+                            <div class="text-center">
+                                <a class="btn btn-outline-dark mt-auto" href="{% url 'product' product.id  %}">View Product</a>
+                            </div>
                             </div>
                         </div>
                     </div>
@@ -85,8 +86,57 @@
                         {% endif %}
                     {% endfor %}
 
-
             </div>
         </section>
+
+        <div class="d-flex justify-content-center mt-4">
+      <nav>
+        <ul class="pagination">
+          {% if products.has_previous %}
+            <li class="page-item">
+              <a class="page-link text-black mx-2" href="?page={{ products.previous_page_number }}">
+                <i class="bi bi-chevron-left"></i>
+              </a>
+            </li>
+          {% else %}
+            <li class="page-item disabled">
+              <span class="page-link text-black mx-2">
+                <i class="bi bi-chevron-left"></i>
+              </span>
+            </li>
+          {% endif %}
+
+          {% for num in products.paginator.page_range %}
+            {% if products.number == num %}
+              <li class="page-item active">
+                <span class="page-link text-white mx-2">
+                  {{ num }}
+                </span>
+              </li>
+            {% else %}
+              <li class="page-item">
+                <a class="page-link btn  text-black mx-2" href="?page={{ num }}">
+                  {{ num }}
+                </a>
+              </li>
+            {% endif %}
+          {% endfor %}
+
+          {% if products.has_next %}
+            <li class="page-item">
+              <a class="page-link text-black mx-2" href="?page={{ products.next_page_number }}">
+                <i class="bi bi-chevron-right"></i>
+              </a>
+            </li>
+          {% else %}
+            <li class="page-item disabled">
+              <span class="page-link text-black mx-2">
+                <i class="bi bi-chevron-right"></i>
+              </span>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
 
 {% endblock %}

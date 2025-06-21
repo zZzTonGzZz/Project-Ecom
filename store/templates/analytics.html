@@ -1,0 +1,201 @@
+{% extends 'base.html' %} {% block content %}
+<!-- Header-->
+<header class="bg-dark py-5">
+    <div class="container px-4 px-lg-5 my-5">
+        <div class="text-center text-white">
+            <h1 class="display-4 fw-bolder">Order Management</h1>
+            <p class="lead fw-normal text-white-50 mb-0">
+                Comprehensive order tracking and management system...
+            </p>
+        </div>
+    </div>
+</header>
+</br></br></br></br></br>
+
+<div class="container">
+    <div class="row g-4 mb-4 text-center">
+        <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="stat-card">
+                <i class="bi bi-receipt text-primary-black display-6 mb-2"></i>
+                <div class="stat-number text-primary">{{ stats.total_orders }}</div>
+                <small class="text-muted">Total Orders</small>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="stat-card">
+                <i class="bi bi-hourglass-split text-warning-black display-6 mb-2"></i>
+                <div class="stat-number text-warning">{{ stats.pending_orders }}</div>
+                <small class="text-muted">Pending</small>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="stat-card">
+                <i class="bi bi-gear text-info-black display-6 mb-2"></i>
+                <div class="stat-number text-info">{{ stats.processing_orders }}</div>
+                <small class="text-muted">Processing</small>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="stat-card">
+                <i class="bi bi-truck text-success-black display-6 mb-2"></i>
+                <div class="stat-number text-success">{{ stats.shipped_orders }}</div>
+                <small class="text-muted">Shipped</small>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="stat-card">
+                <i class="bi bi-check-circle text-primary-black display-6 mb-2"></i>
+                <div class="stat-number text-primary">{{ stats.delivered_orders }}</div>
+                <small class="text-muted">Delivered</small>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="stat-card">
+                <i class="bi bi-currency-dollar text-success-black display-6 mb-2"></i>
+                <div class="stat-number text-success">{{ stats.total_revenue|floatformat:0 }}</div>
+                <small class="text-muted">Total Revenue</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+</br></br></br></br></br></br></br></br></br></br>
+
+    <!-- Orders Table -->
+    <div class="order-table">
+        {% if orders %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th width="40">
+                                <input type="checkbox" id="selectAll" class="form-check-input">
+                            </th>
+                            <th>Order Number</th>
+                            <th>Customer</th>
+                            <th>Status</th>
+                            <th>Items</th>
+                            <th>Amount</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                            <tr class="order-row" data-order-id="{{ order.id }}">
+                                <td>
+                                    <input type="checkbox" class="form-check-input order-checkbox" 
+                                           value="{{ order.id }}">
+                                </td>
+                                <td>
+                                    <strong class="text-primary">#{{ order.order_number }}</strong>
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong>{{ order.user.first_name }} {{ order.user.last_name }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ order.user.email }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <select class="form-select form-select-sm order-status status-{{ order.status }}" 
+                                            onchange="updateOrderStatus({{ order.id }}, this.value)">
+                                        {% for value, label in status_choices %}
+                                            <option value="{{ value }}" {% if order.status == value %}selected{% endif %}>
+                                                {{ label }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ order.items.count }} items</span>
+                                </td>
+                                <td>
+                                    <strong>${{ order.total_amount|add:order.tax_amount }}</strong>
+                                    <br>
+                                    <small class="text-muted">+${{ order.tax_amount }} tax</small>
+                                </td>
+                                <td>
+                                    <div>{{ order.created_at|date:"M d, Y" }}</div>
+                                    <small class="text-muted">{{ order.created_at|time:"g:i A" }}</small>
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a href="{% url 'admin_order_detail' order.id %}" 
+                                           class="btn btn-outline-primary btn-sm" title="View Details">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="{% url 'customer_orders' order.user.id %}" 
+                                           class="btn btn-outline-info btn-sm" title="Customer Orders">
+                                            <i class="bi bi-person"></i>
+                                        </a>
+                                        {% if user.userprofile.is_admin %}
+                                            <button class="btn btn-outline-danger btn-sm" 
+                                                    onclick="deleteOrder({{ order.id }})" title="Delete Order">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if orders.has_other_pages %}
+                <div class="d-flex justify-content-center p-3">
+                    <nav aria-label="Order pagination">
+                        <ul class="pagination">
+                            {% if orders.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">&laquo; First</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ orders.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Previous</a>
+                                </li>
+                            {% endif %}
+                            
+                            <li class="page-item active">
+                                <span class="page-link">
+                                    Page {{ orders.number }} of {{ orders.paginator.num_pages }}
+                                </span>
+                            </li>
+                            
+                            {% if orders.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ orders.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Next</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ orders.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Last &raquo;</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-receipt text-muted" style="font-size: 4rem;"></i>
+                <h4 class="mt-3 text-muted">No Orders Found</h4>
+                <p class="text-muted">
+                    {% if is_filtered %}
+                        No orders match your current filters. Try adjusting your search criteria.
+                    {% else %}
+                        No orders have been placed yet.
+                    {% endif %}
+                </p>
+                {% if is_filtered %}
+                    <a href="{% url 'order_management' %}" class="btn btn-primary">
+                        <i class="bi bi-x-circle"></i> Clear Filters
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+</br></br></br></br></br></br></br></br></br></br></br></br>
+
+</header>
+{% endblock %}

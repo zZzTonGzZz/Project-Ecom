@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<!-- Header-->
+
+
+<div class="container">
+<br/><br/><br/><br/><br/><br/><br/>
+
+<div class="card mb-3">
+</br></br>
+    <div class="text-center">
+        <div class="delete-icon-circle">
+            <i class="bi bi-exclamation-triangle icon-large" style="font-size: 8rem; color: rgb(255, 0, 0)"></i>
+        </div>
+        <h4>Are you sure you want to delete "{{ product.name }}"?</h4>
+        <h6>Product ID: {{ product.id }}</h6>
+        <p>Warnning: This action will permanently delete the product and cannot be undone!</p>
+    </div>
+</br></br>
+    <form method="post" action="{% url 'confirm_delete' product.id %}">
+        {% csrf_token %}
+        <div class="text-center">
+            <input type="submit" class="btn btn-danger" value="Confirm">
+            <a href="{% url 'product' product.id %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</br></br>
+</div>
+</div>
+</br></br></br></br></br></br></br></br></br></br></br></br>
+{% endblock %}

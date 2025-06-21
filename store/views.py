@@ -1,19 +1,21 @@
-from django.shortcuts import render, redirect
-from .models import Product, Category, Profile
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Product, Category, Profile, Order
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
-from .forms import SignUpForm, UpdateUserForm, ChangePasswordForm, UserInfoForm
+from .forms import SignUpForm, UpdateUserForm, ChangePasswordForm, UserInfoForm, ProductForm
+from django.core.paginator import Paginator
 
 from payment.forms import ShippingForm
 from payment.models import ShippingAddress
 
 from django import forms
-from django.db.models import Q
+from django.db.models import Q, Count, Sum
 import json
 from cart.cart import Cart
-
+from datetime import timedelta
+from django.utils.timezone import now
 
 def search(request):
 	# Determine if they filled out the form
@@ -101,28 +103,64 @@ def category_summary(request):
 	return render(request, 'category_summary.html', {"categories":categories})	
 
 def category(request, foo):
-	# Replace Hyphens with Spaces
-	foo = foo.replace('-', ' ')
-	# Grab the category from the url
-	try:
-		# Look Up The Category
-		category = Category.objects.get(name=foo)
-		products = Product.objects.filter(category=category)
-		return render(request, 'category.html', {'products':products, 'category':category})
-	except:
-		messages.success(request, ("That Category Doesn't Exist..."))
-		return redirect('home')
+    # Replace hyphens with spaces
+    foo = foo.replace('-', ' ')
+
+    try:
+        # Look up the category
+        category = Category.objects.get(name=foo)
+
+        # Filter products by category
+        product_list = Product.objects.filter(category=category)
+
+        # Add pagination — 8 per page
+        paginator = Paginator(product_list, 8)
+        page_number = request.GET.get('page')
+        products = paginator.get_page(page_number)
+
+        return render(request, 'category.html', {
+            'products': products,
+            'category': category
+        })
+
+    except Category.DoesNotExist:
+        messages.error(request, "That category doesn't exist...")
+        return redirect('home')
 
 
 def product(request,pk):
 	product = Product.objects.get(id=pk)
 	return render(request, 'product.html', {'product':product})
 
+def confirm_delete(request, pk):
+    product = get_object_or_404(Product, id=pk)
+    if request.method == 'POST':
+        product.delete()
+        messages.success(request, f'Product "{product.name}" was deleted successfully...')
+        return redirect('home')
+
+    return render(request, 'confirm_delete.html', {'product': product})
+
+# def home(request):
+# 	products = Product.objects.all()
+# 	return render(request, 'home.html', {'products':products})
 
 def home(request):
-	products = Product.objects.all()
-	return render(request, 'home.html', {'products':products})
+    product_list = Product.objects.all()
+    paginator = Paginator(product_list, 8)  # Show 8 products per page
 
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'home.html', {'products': page_obj})
+
+def analytics(request):
+	products = Product.objects.all()
+	return render(request, 'analytics.html', {'products':products})
+
+def add_item(request):
+	products = Product.objects.all()
+	return render(request, 'add_item.html', {'products':products})
 
 def about(request):
 	return render(request, 'about.html', {})	
@@ -185,3 +223,64 @@ def register_user(request):
 			return redirect('register')
 	else:
 		return render(request, 'register.html', {'form':form})
+	
+def add_item(request):
+    if request.method == 'POST':
+        form = ProductForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Product added successfully...')
+            return redirect('home')
+        else:
+            messages.error(request, 'Please fix the errors below...')
+    else:
+        form = ProductForm()
+    return render(request, 'add_item.html', {'form': form})
+
+def product_update(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    categories = Category.objects.all()
+    if request.method == 'POST':
+        form = ProductForm(request.POST, request.FILES, instance=product)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Product updated successfully...')
+            return redirect('product', pk=product.pk)
+    else:
+        form = ProductForm(instance=product)
+
+    return render(request, 'product_update.html', {
+        'form': form,
+        'product': product,
+        'categories': categories
+    })
+
+
+# def order_dashboard(request):
+#     today = now().date()
+#     last_7_days = [today - timedelta(days=i) for i in range(6, -1, -1)]
+
+#     daily_counts = []
+#     for day in last_7_days:
+#         count = Order.objects.filter(created_at__date=day).count()
+#         daily_counts.append(count)
+
+#     daily_labels = [day.strftime('%b %d') for day in last_7_days]
+
+#     stats = {
+#         'total_orders': Order.objects.count(),
+#         'pending_orders': Order.objects.filter(status='pending').count(),
+#         'processing_orders': Order.objects.filter(status='processing').count(),
+#         'shipped_orders': Order.objects.filter(status='shipped').count(),
+#         'delivered_orders': Order.objects.filter(status='delivered').count(),
+#         'total_revenue': Order.objects.aggregate(total=Sum('total_amount'))['total'] or 0
+#     }
+
+#     return render(request, 'admin/order_dashboard.html', {
+#         'stats': stats,
+#         'daily_labels': json.dumps(daily_labels),
+#         'daily_counts': json.dumps(daily_counts),
+#     })
+
+
+

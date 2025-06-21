@@ -21,6 +21,29 @@
             {% csrf_token %}
             
             {{form.as_p}}
+            <!-- <div class="mb-3">
+                  <select class="form-select {% if form.role.errors %}is-invalid{% endif %}" 
+                          id="{{ form.role.id_for_label }}" 
+                          name="{{ form.role.name }}"
+                          required>
+                      <option value="" >Select account type</option>
+                      <option value="customer" {% if form.role.value == 'customer' %}selected{% endif %}>
+                          Customer - Browse and shop products
+                      </option>
+                      <option value="staff" {% if form.role.value == 'staff' %}selected{% endif %}>
+                          Staff - Manage products and basic inventory
+                      </option>
+                      <option value="manager" {% if form.role.value == 'manager' %}selected{% endif %}>
+                          Manager - Access sales analytics and manage staff
+                      </option>
+                      <option value="admin" {% if form.role.value == 'admin' %}selected{% endif %}>
+                          Admin - Full system access and Django admin
+                      </option>
+                  </select>
+                  {% if form.role.errors %}
+                      <div class="invalid-feedback">{{ form.role.errors.0 }}</div>
+                  {% endif %}
+              </div> -->
             <br /><br />
             <button type="submit" class="btn btn-secondary">
               Register
