@@ -27,11 +27,16 @@
                     
                     <div class="col mb-5">
                         <div class="card h-100">
-                            <!-- Sale badge-->
-                            <div class="badge bg-dark text-white position-absolute" style="top: 0.5rem; right: 0.5rem">Sale</div>
+                            <!-- Sale badge-->                            <div class="badge bg-dark text-white position-absolute" style="top: 0.5rem; right: 0.5rem">Sale</div>
 
                             <!-- Product image-->
-                            <img class="card-img-top" src="{{ product.image.url }}" alt="..." />
+                            {% if product.image %}
+                                <img class="card-img-top" src="{{ product.image.url }}" alt="{{ product.name }}" />
+                            {% else %}
+                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                    <span class="text-muted">No Image</span>
+                                </div>
+                            {% endif %}
                             <!-- Product details-->
                             <div class="card-body p-4">
                                 <div class="text-center">
@@ -63,10 +68,15 @@
 
 
                     {% else %}
-                <div class="col mb-5">
-                        <div class="card h-100">
+                <div class="col mb-5">                        <div class="card h-100">
                             <!-- Product image-->
-                            <img class="card-img-top" src="{{ product.image.url }}" alt="..." />
+                            {% if product.image %}
+                                <img class="card-img-top" src="{{ product.image.url }}" alt="{{ product.name }}" />
+                            {% else %}
+                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                    <span class="text-muted">No Image</span>
+                                </div>
+                            {% endif %}
                             <!-- Product details-->
                             <div class="card-body p-4">
                                 <div class="text-center">

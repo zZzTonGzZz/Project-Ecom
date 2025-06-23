@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+{% load math_filters %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Order Details #{{ order.id }}</h1>
+                <a href="{% url 'order_management' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Orders
+                </a>
+            </div>
+
+            <div class="row">
+                <!-- Order Information -->
+                <div class="col-md-8">
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5>Order Information</h5>
+                            <div>
+                                {% if order.shipped %}
+                                    <span class="badge bg-success fs-6">Shipped</span>
+                                {% else %}
+                                    <span class="badge bg-warning fs-6">Pending</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Order ID:</strong> #{{ order.id }}</p>
+                                    <p><strong>Customer:</strong> {{ order.full_name }}</p>
+                                    <p><strong>Email:</strong> {{ order.email }}</p>
+                                    <p><strong>Date Ordered:</strong> {{ order.date_ordered|date:"F d, Y H:i" }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Total Amount:</strong> ${{ order.amount_paid|floatformat:2 }}</p>
+                                    {% if order.shipped %}
+                                        <p><strong>Date Shipped:</strong> 
+                                            {% if order.date_shipped %}
+                                                {{ order.date_shipped|date:"F d, Y H:i" }}
+                                            {% else %}
+                                                Not specified
+                                            {% endif %}
+                                        </p>
+                                    {% endif %}
+                                    {% if order.user %}
+                                        <p><strong>Registered User:</strong> {{ order.user.username }}</p>
+                                    {% else %}
+                                        <p><strong>Guest Order</strong></p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Shipping Address -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5>Shipping Address</h5>
+                        </div>
+                        <div class="card-body">
+                            <pre class="mb-0">{{ order.shipping_address }}</pre>
+                        </div>
+                    </div>
+
+                    <!-- Order Items -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Order Items</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Product</th>
+                                            <th>Quantity</th>
+                                            <th>Unit Price</th>
+                                            <th>Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for item in order_items %}
+                                        <tr>
+                                            <td>
+                                                {% if item.product %}
+                                                    <a href="{% url 'product' item.product.id %}" class="text-decoration-none">
+                                                        {{ item.product.name }}
+                                                    </a>
+                                                {% else %}
+                                                    <em>Product no longer available</em>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ item.quantity }}</td>
+                                            <td>${{ item.price|floatformat:2 }}</td>
+                                            <td>${{ item.price|mul:item.quantity|floatformat:2 }}</td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="4" class="text-center">No items found</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <th colspan="3" class="text-end">Total Amount:</th>
+                                            <th>${{ order.amount_paid|floatformat:2 }}</th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions Sidebar -->
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Order Actions</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if order.delivered %}
+                                <form method="POST" class="mb-3">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="unmark_delivered">
+                                    <button type="submit" class="btn btn-secondary w-100" 
+                                            onclick="return confirm('Remove delivery confirmation?')">
+                                        <i class="fas fa-undo"></i> Unmark as Delivered
+                                    </button>
+                                </form>
+                                <div class="alert alert-success">
+                                    <i class="fas fa-check-circle"></i> This order has been delivered on {{ order.date_delivered|date:"F d, Y" }}.
+                                </div>
+                            {% elif order.shipped %}
+                                <form method="POST" class="mb-3">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="mark_delivered">
+                                    <button type="submit" class="btn btn-success w-100" 
+                                            onclick="return confirm('Mark this order as delivered?')">
+                                        <i class="fas fa-check-circle"></i> Mark as Delivered
+                                    </button>
+                                </form>
+                                <form method="POST" class="mb-3">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="unship_order">
+                                    <button type="submit" class="btn btn-warning w-100" 
+                                            onclick="return confirm('Mark this order as unshipped?')">
+                                        <i class="fas fa-undo"></i> Mark as Unshipped
+                                    </button>
+                                </form>
+                                <p class="text-muted small">
+                                    This order has been shipped. You can mark it as delivered or revert to unshipped.
+                                </p>
+                            {% else %}
+                                <form method="POST" class="mb-3">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="ship_order">
+                                    <button type="submit" class="btn btn-success w-100" 
+                                            onclick="return confirm('Mark this order as shipped?')">
+                                        <i class="fas fa-shipping-fast"></i> Mark as Shipped
+                                    </button>
+                                </form>
+                                <p class="text-muted small">
+                                    This order is pending shipment.
+                                </p>
+                            {% endif %}
+
+                            <hr>
+
+                            <!-- Quick Actions -->
+                            <div class="d-grid gap-2">
+                                {% if order.user %}
+                                    <a href="mailto:{{ order.email }}" class="btn btn-outline-primary">
+                                        <i class="fas fa-envelope"></i> Email Customer
+                                    </a>
+                                {% endif %}
+                                
+                                <button type="button" class="btn btn-outline-info" onclick="window.print()">
+                                    <i class="fas fa-print"></i> Print Order
+                                </button>
+                            </div>
+
+                            <hr>
+
+                            <!-- Order Statistics -->
+                            <h6>Order Statistics</h6>
+                            <small class="text-muted">
+                                <p><strong>Items Count:</strong> {{ order_items|length }}</p>
+                                <p><strong>Order Age:</strong> {{ order.date_ordered|timesince }} ago</p>
+                                {% if order.shipped and order.date_shipped %}
+                                    <p><strong>Shipping Time:</strong> {{ order.date_ordered|timesince:order.date_shipped }}</p>
+                                {% endif %}
+                                {% if order.delivered and order.date_delivered %}
+                                    <p><strong>Delivery Time:</strong> {{ order.date_shipped|timesince:order.date_delivered }}</p>
+                                {% endif %}
+                            </small>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    .btn, .card-header, nav, .d-flex .btn {
+        display: none !important;
+    }
+    
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+}
+</style>
+{% endblock %}

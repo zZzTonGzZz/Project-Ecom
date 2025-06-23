@@ -8,31 +8,18 @@
                         <li class="nav-item"><a class="nav-link active" aria-current="page" href="{% url 'home' %}">Home</a></li>
                         <li class="nav-item"><a class="nav-link active" aria-current="page" href="{% url 'search' %}">Search</a></li>
                         <li class="nav-item"><a class="nav-link" href="{% url 'about' %}">About</a></li>   
-
-
-
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Categories</a>
-                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                    <li><a class="dropdown-item" href="{% url 'category_summary' %}">All Products</a></li>
-                    <li><hr class="dropdown-divider" /></li>
-                    <li><a class="dropdown-item" href="{% url 'category' 'Hats' %}">Hats</a></li>
-                    <li><a class="dropdown-item" href="{% url 'category' 'Dress' %}">Dress</a></li>
-                    <li><a class="dropdown-item" href="{% url 'category' 'Shirts' %}">Shirts</a></li>
-                    <li><a class="dropdown-item" href="{% url 'category' 'Pants' %}">Pants</a></li>
-                    <li><a class="dropdown-item" href="{% url 'category' 'Skirts' %}">Skirts</a></li>
-                    <li><a class="dropdown-item" href="{% url 'category' 'Shoes' %}">Shoes</a></li>
-                </ul>
-            </li>
-
+            
+            
+            <li class="nav-item"><a class="nav-link" href="{% url 'category_summary' %}">Categories</a></li>
 
 
             {% if user.is_authenticated %}
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Profile</a>
                 <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                    <li><a class="dropdown-item" href="{% url 'update_user' %}">User Profile</a></li>
+                    <li><a class="dropdown-item" href="{% url 'my_orders' %}">My Orders</a></li>
                     <li><hr class="dropdown-divider" /></li>
+                    <li><a class="dropdown-item" href="{% url 'update_user' %}">User Profile</a></li>
                     <li><a class="dropdown-item" href="{% url 'update_info'  %}">User Info</a></li>
                 </ul>
             </li>
@@ -40,6 +27,7 @@
 
                <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>
             {% else %}
+               <li class="nav-item"><a class="nav-link" href="{% url 'order_lookup' %}">Track Order</a></li>
                <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
 
                <li class="nav-item"><a class="nav-link" href="{% url 'register' %}">Register</a></li>
@@ -49,15 +37,28 @@
 
 
             {% if user.is_superuser %}
-            <li class="nav-item"><a class="nav-link active" aria-current="page" href="{% url 'add_item' %}">Add Product</a></li>
+
             <li class="nav-item dropdown">
-        
+                <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Add New</a>
+                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <li><a class="dropdown-item" href="{% url 'add_item'  %}">Add Product</a></li>
+                    <li><hr class="dropdown-divider" /></li>
+                    <li><a class="dropdown-item" href="{% url 'add_category' %}">Add Category</a></li>
+                </ul>
+            </li>            <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Orders</a>
                 <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                    <li><a class="dropdown-item" href="{% url 'analytics'  %}">Analytics</a></li>
+                    <li><a class="dropdown-item" href="{% url 'order_management' %}">Order Management</a></li>
                     <li><hr class="dropdown-divider" /></li>
                     <li><a class="dropdown-item" href="{% url 'shipped_dash' %}">Shipped Orders</a></li>
                     <li><a class="dropdown-item" href="{% url 'not_shipped_dash'  %}">UnShipped Orders</a></li>
+                </ul>
+            </li>
+
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Reports</a>
+                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <li><a class="dropdown-item" href="{% url 'sales_report' %}">Sales Report</a></li>
                 </ul>
             </li>
             {% endif %}

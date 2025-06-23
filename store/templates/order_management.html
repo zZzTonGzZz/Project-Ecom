@@ -1,0 +1,374 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<header class="bg-dark py-5">
+  <div class="container px-4 px-lg-5 my-5">
+    <div class="text-center text-white">
+      <h1 class="display-4 fw-bolder">Order Management</h1>
+      <p class="lead fw-normal text-white-50 mb-0">
+        Order Management is the process of efficiently tracking, processing, and fulfilling customer orders from placement to delivery, ensuring accuracy, timely updates, and smooth coordination between sales, inventory, and shipping.
+      </p>
+    </div>
+  </div>
+</header>
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            {% if new_orders_count > 0 %}
+                <div class="alert alert-danger text-center fw-bold" role="alert">
+                    ⚠️ {{ new_orders_count }} new order{{ new_orders_count|pluralize }} not yet viewed by admin!
+                </div>
+            {% endif %}
+
+
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <h4 class="card-title">{{ stats.total_orders }}</h4>
+                            <p class="card-text">Total Orders</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <h4 class="card-title">{{ stats.shipped_orders }}</h4>
+                            <p class="card-text">Shipped Orders</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <h4 class="card-title">{{ stats.pending_orders }}</h4>
+                            <p class="card-text">Pending Orders</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <h4 class="card-title">{{ stats.today_orders }}</h4>
+                            <p class="card-text">Today's Orders</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Filter Orders</h5>
+                </div>
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Orders</option>
+                                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                                <option value="shipped" {% if status_filter == 'shipped' %}selected{% endif %}>Shipped</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="date_filter" class="form-label">Date Range</label>
+                            <select class="form-select" id="date_filter" name="date_filter">
+                                <option value="all" {% if date_filter == 'all' %}selected{% endif %}>All Time</option>
+                                <option value="today" {% if date_filter == 'today' %}selected{% endif %}>Today</option>
+                                <option value="week" {% if date_filter == 'week' %}selected{% endif %}>Last 7 Days</option>
+                                <option value="month" {% if date_filter == 'month' %}selected{% endif %}>Last 30 Days</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="search" class="form-label">Search</label>
+                            <input type="text" class="form-control" id="search" name="search" 
+                                   placeholder="Order ID, Customer Name, Email..." value="{{ search_query }}">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+                            <button type="submit" class="btn btn-primary d-block w-100">Filter</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Bulk Actions -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="POST" action="{% url 'bulk_order_actions' %}" id="bulkActionForm">
+                        {% csrf_token %}
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-4">
+                                <label for="bulkAction" class="form-label">Bulk Actions</label>
+                                <select class="form-select" id="bulkAction" name="action">
+                                    <option value="">Select an action...</option>
+                                    <option value="ship_selected">Mark as Shipped</option>
+                                    <option value="unship_selected">Mark as Unshipped</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary w-100" onclick="return confirmBulkAction()">Apply</button>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">Select orders below and choose an action to apply to all selected orders.</small>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Orders Table -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5>Orders List</h5>
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="selectAllBtn">
+                        Select All
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox" id="selectAll"></th>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Email</th>
+                                    <th>Date Ordered</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in orders %}
+                                <tr>
+                                    <td>
+                                        <input type="checkbox" name="order_ids" value="{{ order.id }}" form="bulkActionForm">
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'order_detail' order.id %}" class="text-decoration-none">
+                                            #{{ order.id }}
+                                        </a>
+                                    </td>
+                                    <td>{{ order.full_name }}</td>
+                                    <td>{{ order.email }}</td>
+                                    <td>{{ order.date_ordered|date:"M d, Y H:i" }}</td>
+                                    <td>${{ order.amount_paid|floatformat:2 }}</td>
+                                    <td>
+                                        {% if order.shipped %}
+                                            <span class="badge bg-success">Shipped</span>
+                                            {% if order.date_shipped %}
+                                                <small class="text-muted d-block">{{ order.date_shipped|date:"M d, Y" }}</small>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{% url 'order_detail' order.id %}" class="btn btn-outline-primary">
+                                                View
+                                            </a>
+                                            {% if not order.shipped %}
+                                                <button type="button" class="btn btn-outline-success" 
+                                                        onclick="quickShip({{ order.id }})">
+                                                    Ship
+                                                </button>
+                                            {% else %}
+                                                <button type="button" class="btn btn-outline-secondary" 
+                                                        onclick="quickUnship({{ order.id }})">
+                                                    Unship
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center">No orders found</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if orders.has_other_pages %}
+                    <nav aria-label="Orders pagination">
+                        <ul class="pagination justify-content-center">
+                            {% if orders.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.date_filter %}&date_filter={{ request.GET.date_filter }}{% endif %}">First</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ orders.previous_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.date_filter %}&date_filter={{ request.GET.date_filter }}{% endif %}">Previous</a>
+                                </li>
+                            {% endif %}
+
+                            <li class="page-item active">
+                                <span class="page-link">
+                                    Page {{ orders.number }} of {{ orders.paginator.num_pages }}
+                                </span>
+                            </li>
+
+                            {% if orders.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ orders.next_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.date_filter %}&date_filter={{ request.GET.date_filter }}{% endif %}">Next</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ orders.paginator.num_pages }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.date_filter %}&date_filter={{ request.GET.date_filter }}{% endif %}">Last</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</br></br>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add event listener to the select all checkbox
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const selectAllBtn = document.getElementById('selectAllBtn');
+    
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('input[name="order_ids"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAllCheckbox.checked;
+            });
+            updateButtonText();
+        });
+    }
+    
+    // Add event listener to the select all button
+    if (selectAllBtn) {
+        selectAllBtn.addEventListener('click', function() {
+            const selectAllCheckbox = document.getElementById('selectAll');
+            const checkboxes = document.querySelectorAll('input[name="order_ids"]');
+            const allChecked = checkboxes.length > 0 && Array.from(checkboxes).every(cb => cb.checked);
+            
+            // Toggle all checkboxes
+            const newState = !allChecked;
+            selectAllCheckbox.checked = newState;
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = newState;
+            });
+            updateButtonText();
+        });
+    }
+    
+    // Add event listeners to individual checkboxes to update select all state
+    const orderCheckboxes = document.querySelectorAll('input[name="order_ids"]');
+    orderCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            updateSelectAllState();
+            updateButtonText();
+        });
+    });
+    
+    // Initial button text update
+    updateButtonText();
+});
+
+function updateSelectAllState() {
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('input[name="order_ids"]');
+    const checkedBoxes = document.querySelectorAll('input[name="order_ids"]:checked');
+    
+    if (checkedBoxes.length === 0) {
+        selectAllCheckbox.indeterminate = false;
+        selectAllCheckbox.checked = false;
+    } else if (checkedBoxes.length === checkboxes.length) {
+        selectAllCheckbox.indeterminate = false;
+        selectAllCheckbox.checked = true;
+    } else {
+        selectAllCheckbox.indeterminate = true;
+    }
+}
+
+function updateButtonText() {
+    const selectAllBtn = document.getElementById('selectAllBtn');
+    const checkboxes = document.querySelectorAll('input[name="order_ids"]');
+    const checkedBoxes = document.querySelectorAll('input[name="order_ids"]:checked');
+    
+    if (checkboxes.length === 0) {
+        selectAllBtn.textContent = 'Select All';
+        selectAllBtn.disabled = true;
+    } else if (checkedBoxes.length === checkboxes.length) {
+        selectAllBtn.textContent = 'Deselect All';
+        selectAllBtn.disabled = false;
+    } else {
+        selectAllBtn.textContent = 'Select All';
+        selectAllBtn.disabled = false;
+    }
+}
+
+function confirmBulkAction() {
+    const selectedOrders = document.querySelectorAll('input[name="order_ids"]:checked');
+    const action = document.getElementById('bulkAction').value;
+    
+    if (selectedOrders.length === 0) {
+        alert('Please select at least one order.');
+        return false;
+    }
+    
+    if (!action) {
+        alert('Please select an action.');
+        return false;
+    }
+    
+    return confirm(`Are you sure you want to apply this action to ${selectedOrders.length} order(s)?`);
+}
+
+function quickShip(orderId) {
+    if (confirm('Mark this order as shipped?')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/order-detail/${orderId}/`;
+        
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        form.innerHTML = `
+            <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
+            <input type="hidden" name="action" value="ship_order">
+        `;
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function quickUnship(orderId) {
+    if (confirm('Mark this order as unshipped?')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/order-detail/${orderId}/`;
+        
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        form.innerHTML = `
+            <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
+            <input type="hidden" name="action" value="unship_order">
+        `;
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
+
+<script>
+    setInterval(function () {
+        window.location.reload();
+    }, 30000);
+</script>
+
+{% endblock %}

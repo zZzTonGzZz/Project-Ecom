@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<!-- Header-->
+<header class="bg-dark py-5">
+    <div class="container px-4 px-lg-5 my-5">
+        <div class="text-center text-white">
+            <h1 class="display-4 fw-bolder">Add New Category</h1>
+            <p class="lead fw-normal text-white-50 mb-0">
+                Create a new category for your store inventory...
+            </p>
+        </div>
+    </div>
+</header>
+<div class="container">
+    <div class="row">
+        <center>
+            <div class="col-10">
+                <br/><br/>
+              <div class="card">
+                <div class="card-header">
+                  Add Category
+                </div>
+                <div class="card-body">
+                  <form method="POST" action="{% url 'add_category' %}">
+
+                    {% csrf_token %}
+                    {% if messages %}
+                        {% for message in messages %}
+                        {% endfor %}
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <input type="text" class="form-control" placeholder="Category Name" name="name">
+                    </div>
+
+                    <button type="submit" class="btn btn-secondary">Save Category</button>
+                </form>
+                </div>
+              </div>
+<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+            </div>
+        </center>
+    </div>
+</div>
+
+
+{% endblock %}

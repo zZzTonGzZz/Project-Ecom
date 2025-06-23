@@ -45,9 +45,32 @@ class Order(models.Model):
     date_ordered = models.DateTimeField(auto_now_add=True)
     shipped = models.BooleanField(default=False)
     date_shipped = models.DateTimeField(blank=True, null=True)
+    delivered = models.BooleanField(default=False)
+    date_delivered = models.DateTimeField(blank=True, null=True)
+    viewed_by_admin = models.BooleanField(default=False)
 
     def __str__(self):
         return f'Order - {self.id}'
+    
+    @property
+    def status(self):
+        """Return the current status of the order"""
+        if self.delivered:
+            return 'Delivered'
+        elif self.shipped:
+            return 'Shipped'
+        else:
+            return 'Processing'
+    
+    @property
+    def status_class(self):
+        """Return CSS class for status badge"""
+        if self.delivered:
+            return 'bg-success'
+        elif self.shipped:
+            return 'bg-info'
+        else:
+            return 'bg-warning'
     
 # Auto add shipping date
 @receiver(pre_save, sender=Order)

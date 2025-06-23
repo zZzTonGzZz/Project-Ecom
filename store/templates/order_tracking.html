@@ -1,0 +1,258 @@
+{% extends 'base.html' %}
+{% load math_filters %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Order Tracking #{{ order.id }}</h1>
+                {% if not is_guest %}
+                    <a href="{% url 'my_orders' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to My Orders
+                    </a>
+                {% else %}
+                    <a href="{% url 'order_lookup' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Track Another Order
+                    </a>
+                {% endif %}
+            </div>
+
+            <div class="row">
+                <!-- Order Progress -->
+                <div class="col-12 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Order Status: <span class="badge {{ order.status_class }} fs-6">{{ order.status }}</span></h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Progress Bar -->
+                            <div class="progress mb-4" style="height: 12px;">
+                                {% if order.delivered %}
+                                    <div class="progress-bar bg-success progress-bar-striped" style="width: 100%"></div>
+                                {% elif order.shipped %}
+                                    <div class="progress-bar bg-info progress-bar-striped" style="width: 66%"></div>
+                                {% else %}
+                                    <div class="progress-bar bg-warning progress-bar-striped" style="width: 33%"></div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Status Steps -->
+                            <div class="row text-center">
+                                <div class="col-md-3">
+                                    <div class="step-item">
+                                        <div class="step-icon bg-success text-white rounded-circle mx-auto mb-2" style="width: 50px; height: 50px; line-height: 50px;">
+                                            <i class="fas fa-shopping-cart"></i>
+                                        </div>
+                                        <h6 class="text-success">Order Placed</h6>
+                                        <small class="text-muted">{{ order.date_ordered|date:"F d, Y H:i" }}</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="step-item">
+                                        <div class="step-icon rounded-circle mx-auto mb-2 {% if order.shipped %}bg-info text-white{% else %}bg-light text-muted{% endif %}" style="width: 50px; height: 50px; line-height: 50px;">
+                                            <i class="fas fa-box"></i>
+                                        </div>
+                                        <h6 class="{% if order.shipped %}text-info{% else %}text-muted{% endif %}">Processing</h6>
+                                        <small class="text-muted">
+                                            {% if order.shipped %}
+                                                Completed
+                                            {% else %}
+                                                In progress...
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="step-item">
+                                        <div class="step-icon rounded-circle mx-auto mb-2 {% if order.shipped %}bg-info text-white{% else %}bg-light text-muted{% endif %}" style="width: 50px; height: 50px; line-height: 50px;">
+                                            <i class="fas fa-truck"></i>
+                                        </div>
+                                        <h6 class="{% if order.shipped %}text-info{% else %}text-muted{% endif %}">Shipped</h6>
+                                        <small class="text-muted">
+                                            {% if order.date_shipped %}
+                                                {{ order.date_shipped|date:"F d, Y H:i" }}
+                                            {% elif order.shipped %}
+                                                Recently shipped
+                                            {% else %}
+                                                Pending
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="step-item">
+                                        <div class="step-icon rounded-circle mx-auto mb-2 {% if order.delivered %}bg-success text-white{% else %}bg-light text-muted{% endif %}" style="width: 50px; height: 50px; line-height: 50px;">
+                                            <i class="fas fa-check-circle"></i>
+                                        </div>
+                                        <h6 class="{% if order.delivered %}text-success{% else %}text-muted{% endif %}">Delivered</h6>
+                                        <small class="text-muted">
+                                            {% if order.date_delivered %}
+                                                {{ order.date_delivered|date:"F d, Y H:i" }}
+                                            {% elif order.delivered %}
+                                                Recently delivered
+                                            {% else %}
+                                                Pending
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Delivery Confirmation Button -->
+                            {% if order.shipped and not order.delivered and not is_guest %}
+                            <div class="text-center mt-4">
+                                <div class="alert alert-info">
+                                    <h6><i class="fas fa-info-circle"></i> Package Delivered?</h6>
+                                    <p class="mb-3">If you have received your order, please confirm delivery below.</p>
+                                    <form method="POST" style="display: inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="confirm_delivery">
+                                        <button type="submit" class="btn btn-success" 
+                                                onclick="return confirm('Confirm that you have received your order?')">
+                                            <i class="fas fa-check"></i> Confirm Delivery
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Details -->
+                <div class="col-md-8">
+                    <!-- Order Items -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5>Order Items</h5>
+                        </div>
+                        <div class="card-body">
+                            {% for item in order_items %}
+                            <div class="row align-items-center mb-3 {% if not forloop.last %}border-bottom pb-3{% endif %}">
+                                <div class="col-md-2">
+                                    {% if item.product and item.product.image %}
+                                        <img src="{{ item.product.image.url }}" class="img-fluid rounded" alt="{{ item.product.name }}">
+                                    {% else %}
+                                        <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 60px;">
+                                            <span class="text-muted small">No Image</span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="mb-1">
+                                        {% if item.product %}
+                                            {{ item.product.name }}
+                                        {% else %}
+                                            <em>Product no longer available</em>
+                                        {% endif %}
+                                    </h6>
+                                    {% if item.product %}
+                                        <small class="text-muted">{{ item.product.description|truncatewords:10 }}</small>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-2 text-center">
+                                    <span class="badge bg-secondary">Qty: {{ item.quantity }}</span>
+                                </div>
+                                <div class="col-md-2 text-end">
+                                    <strong>${{ item.price|mul:item.quantity|floatformat:2 }}</strong>
+                                    <br><small class="text-muted">${{ item.price|floatformat:2 }} each</small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            
+                            <div class="row mt-3">
+                                <div class="col-md-10 text-end">
+                                    <h5>Total: ${{ order.amount_paid|floatformat:2 }}</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Shipping Address -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Shipping Address</h5>
+                        </div>
+                        <div class="card-body">
+                            <address>
+                                <strong>{{ order.full_name }}</strong><br>
+                                {{ order.shipping_address|linebreaks }}
+                            </address>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Summary Sidebar -->
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Order Summary</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Order ID:</strong> #{{ order.id }}</p>
+                            <p><strong>Order Date:</strong> {{ order.date_ordered|date:"F d, Y" }}</p>
+                            <p><strong>Customer:</strong> {{ order.full_name }}</p>
+                            <p><strong>Email:</strong> {{ order.email }}</p>
+                            <p><strong>Total Amount:</strong> <span class="text-success">${{ order.amount_paid|floatformat:2 }}</span></p>
+                            <p><strong>Status:</strong> <span class="badge {{ order.status_class }}">{{ order.status }}</span></p>
+                            
+                            <hr>
+                            
+                            {% if order.shipped %}
+                                <p><strong>Shipped Date:</strong> 
+                                    {% if order.date_shipped %}
+                                        {{ order.date_shipped|date:"F d, Y" }}
+                                    {% else %}
+                                        Recently shipped
+                                    {% endif %}
+                                </p>
+                            {% endif %}
+                            
+                            {% if order.delivered %}
+                                <p><strong>Delivered Date:</strong> 
+                                    {% if order.date_delivered %}
+                                        {{ order.date_delivered|date:"F d, Y" }}
+                                    {% else %}
+                                        Recently delivered
+                                    {% endif %}
+                                </p>
+                                <div class="alert alert-success">
+                                    <i class="fas fa-check-circle"></i> Order delivered successfully!
+                                </div>
+                            {% elif order.shipped %}
+                                <div class="alert alert-info">
+                                    <i class="fas fa-truck"></i> Your order is on the way!
+                                </div>
+                            {% else %}
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-clock"></i> Your order is being processed.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.step-item {
+    position: relative;
+}
+
+.step-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@media print {
+    .btn, .alert .btn {
+        display: none !important;
+    }
+}
+</style>
+{% endblock %}
