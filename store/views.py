@@ -20,6 +20,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from payment.models import Order as PaymentOrder, OrderItem
 from django.http import JsonResponse
 from django.core.serializers.json import DjangoJSONEncoder
+from django.http import HttpResponseForbidden
 
 def search(request):
 	query = request.GET.get('searched', '')
@@ -597,5 +598,32 @@ def order_lookup(request):
     
     return render(request, 'order_lookup.html')
 
+
+# @login_required
+# def cancel_order(request, order_id):
+#     # One clean lookup
+#     try:
+#         order = Order.objects.get(id=order_id)
+#     except Order.DoesNotExist:
+#         messages.error(request, f"Order #{order_id} does not exist.")
+#         return redirect('order_management')
+
+#     # Only allow superusers to cancel
+#     if not request.user.is_superuser:
+#         messages.error(request, "Unauthorized.")
+#         return redirect('order_management')  # Change this if your view name differs
+
+#     if request.method == 'POST':
+#         # Cancel confirmed
+#         if order.status != 'cancelled':
+#             order.status = 'cancelled'
+#             order.save()
+#             messages.success(request, f"Order #{order.id} has been cancelled.")
+#         else:
+#             messages.warning(request, f"Order #{order.id} is already cancelled.")
+#         return redirect('order_management')
+
+#     # Show confirmation page
+#     return render(request, 'cancel_order.html', {'order': order})
 
 

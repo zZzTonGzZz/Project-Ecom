@@ -68,13 +68,30 @@ class Product(models.Model):
 
 
 class Order(models.Model):
+
+    STATUS_CHOICES = [
+        ('processing', 'Processing'),
+        ('shipped', 'Shipped'),
+        ('delivered', 'Delivered'),
+        ('cancelled', 'Cancelled'),
+    ]
+
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     quantity = models.IntegerField(default=1)
     address = models.CharField(max_length=100, default='', blank=True)
     phone = models.CharField(max_length=20, default='', blank=True)
     date = models.DateField(default=datetime.datetime.today)
-    status = models.BooleanField(default=False)
+    status = models.CharField(
+    max_length=20,
+    choices=[
+        ('processing', 'Processing'),
+        ('shipped', 'Shipped'),
+        ('delivered', 'Delivered'),
+        ('cancelled', 'Cancelled')
+    ],
+    default='processing'
+    )
 
     def __str__(self):
         return f'Order of {self.product.name} by {self.customer}'
