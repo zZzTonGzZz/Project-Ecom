@@ -146,11 +146,15 @@ def confirm_delete(request, pk):
 def home(request):
     product_list = Product.objects.all()
     paginator = Paginator(product_list, 8)
-
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    return render(request, 'home.html', {'products': page_obj})
+    categories = Category.objects.all()  # Add this line
+
+    return render(request, 'home.html', {
+        'products': page_obj,
+        'categories': categories,  # Pass categories here
+    })
 
 def about(request):
 	return render(request, 'about.html', {})	
