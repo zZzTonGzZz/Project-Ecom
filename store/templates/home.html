@@ -20,16 +20,7 @@
                 aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse justify-content-center" id="navbarSupportedContent">
-
-            <ul class="navbar-nav mb-2 mb-lg-0">
-                {% for category in categories %}
-                    <li class="nav-item">
-                        <a class="nav-link" style="font-family: 'Times New Roman', monospace; font-size: 20px;" href="{% url 'category' category %}">{{ category }}</a>
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
+        
     </div>
 </nav>
 

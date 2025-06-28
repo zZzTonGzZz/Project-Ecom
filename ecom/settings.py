@@ -17,7 +17,7 @@ SECRET_KEY = 'django-insecure-m6^7lmt1iw(qe+_(=a7&8lzn4s=k)p9)xlx-y=f7n%#=4qq+sk
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['bbu-d104-g2.thavrak-lab.xyz',]
+ALLOWED_HOSTS = ['*']
 CSRF_TRUSTED_ORIGINS = ['https://bbu-d104-g2.thavrak-lab.xyz']
 
 # Application definition
@@ -60,6 +60,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'cart.context_processors.cart',
+                'store.context_processors.categories_processor',
             ],
         },
     },
